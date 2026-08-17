@@ -1,5 +1,7 @@
 # Batalha de Monstros
 
+**Demo:** https://batalha-de-monstros.vercel.app
+
 Desafio técnico Revi. Aplicação React + TypeScript onde você cadastra monstros, escolhe dois e
 assiste à batalha entre eles. Sem backend — tudo persiste em `localStorage`.
 
