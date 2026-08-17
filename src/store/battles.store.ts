@@ -1,11 +1,11 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { DamageMode } from '@/domain/battle/battle.types'
+import type { BattleMode } from './settings.store'
 
 export type BattleRecord = {
   id: string
   foughtAt: string
-  mode: DamageMode
+  mode: BattleMode
   winnerName: string
   loserName: string
   rounds: number

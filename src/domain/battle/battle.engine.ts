@@ -1,12 +1,14 @@
 import type { Monster } from '@/domain/monster/monster.types'
-import { DAMAGE_RULES } from './damage.rules'
-import { resolveFirstAttacker } from './turn-order'
-import type { BattleResult, DamageMode, Round } from './battle.types'
+import { advanceRound, createBattle, isFinished, toResult } from './battle.state'
+import type { BattleResult, DamageMode } from './battle.types'
 
 /**
  * Calcula a batalha inteira de uma vez, como o enunciado exige, e devolve
  * o array completo de rounds. A UI apenas reproduz esse array — nada é
  * decidido durante a animação.
+ *
+ * É um fold sobre `advanceRound`, o mesmo resolvedor que o modo por turno usa.
+ * Uma regra, dois drivers.
  *
  * Função pura: mesma entrada, mesma saída, sem IO e sem aleatoriedade.
  */
@@ -15,50 +17,11 @@ export const simulateBattle = (
   monsterB: Monster,
   mode: DamageMode = 'classic',
 ): BattleResult => {
-  const damageRule = DAMAGE_RULES[mode]
-  const { first, second, reason } = resolveFirstAttacker(monsterA, monsterB)
+  let state = createBattle(monsterA, monsterB, mode)
 
-  const hp: Record<string, number> = {
-    [monsterA.id]: monsterA.hp,
-    [monsterB.id]: monsterB.hp,
-  }
-  const turnsTaken: Record<string, number> = { [monsterA.id]: 0, [monsterB.id]: 0 }
-
-  const rounds: Round[] = []
-  let attacker = first
-  let defender = second
-
-  while (hp[monsterA.id] > 0 && hp[monsterB.id] > 0) {
-    const outcome = damageRule(attacker, defender, { turnIndex: turnsTaken[attacker.id] })
-    turnsTaken[attacker.id] += 1
-    hp[defender.id] = Math.max(0, hp[defender.id] - outcome.damage)
-
-    rounds.push({
-      round: rounds.length + 1,
-      attackerId: attacker.id,
-      defenderId: defender.id,
-      damage: outcome.damage,
-      effectiveness: outcome.effectiveness,
-      powerId: outcome.power?.id,
-      hpA: hp[monsterA.id],
-      hpB: hp[monsterB.id],
-    })
-
-    if (hp[defender.id] === 0) break
-
-    const previousAttacker = attacker
-    attacker = defender
-    defender = previousAttacker
+  while (!isFinished(state)) {
+    state = advanceRound(monsterA, monsterB, state)
   }
 
-  return {
-    mode,
-    monsterAId: monsterA.id,
-    monsterBId: monsterB.id,
-    firstAttackerId: first.id,
-    firstAttackerReason: reason,
-    winnerId: attacker.id,
-    loserId: defender.id,
-    rounds,
-  }
+  return toResult(monsterA, monsterB, state)
 }

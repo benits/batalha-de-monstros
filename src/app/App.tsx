@@ -4,17 +4,19 @@ import { useSettingsStore } from '@/store/settings.store'
 import { RosterScreen } from '@/features/roster/RosterScreen'
 import { SelectScreen } from '@/features/battle/SelectScreen'
 import { ArenaScreen } from '@/features/battle/ArenaScreen'
+import { TournamentScreen } from '@/features/tournament/TournamentScreen'
 import { HistoryScreen } from '@/features/history/HistoryScreen'
 import { Button } from '@/components/ui/Button'
 import { Tabs, type Tab } from '@/components/ui/Tabs'
 
-type Screen = 'roster' | 'select' | 'arena' | 'history'
+type Screen = 'roster' | 'select' | 'arena' | 'tournament' | 'history'
 
 const TABS: Tab<Screen>[] = [
   { id: 'roster', label: '01 · Roster' },
   { id: 'select', label: '02 · Seleção' },
   { id: 'arena', label: '03 · Arena' },
-  { id: 'history', label: '04 · Histórico' },
+  { id: 'tournament', label: '04 · Torneio' },
+  { id: 'history', label: '05 · Histórico' },
 ]
 
 export const App = () => {
@@ -98,6 +100,8 @@ export const App = () => {
                 Escolha dois monstros diferentes na tela de seleção.
               </p>
             ))}
+
+          {screen === 'tournament' && <TournamentScreen monsters={monsters} />}
 
           {screen === 'history' && <HistoryScreen />}
         </div>

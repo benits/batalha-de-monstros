@@ -87,8 +87,11 @@ test('velocidade igual resolve pelo maior ataque', async ({ page }) => {
 
 test('o modo padrão da aplicação é o Clássico', async ({ page }) => {
   await goToTab(page, /Seleção/)
-  await expect(page.getByRole('button', { name: 'Modo: Clássico' })).toBeVisible()
-  await expect(page.getByText(/dano = ataque − defesa, mínimo 1/)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Clássico', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  await expect(page.getByTestId('mode-hint')).toContainText('dano = ataque − defesa, mínimo 1')
 })
 
 test('todos os rounds já existem quando a animação começa', async ({ page }) => {

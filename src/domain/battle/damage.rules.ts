@@ -1,7 +1,7 @@
 import type { Monster } from '@/domain/monster/monster.types'
 import { levelOf } from '@/domain/monster/monster.rules'
 import { advantage } from '@/domain/powers/elements'
-import { powerForRound } from '@/domain/powers/powers.rules'
+import { powerForRound, unlockedPowers } from '@/domain/powers/powers.rules'
 import type { DamageRule } from './battle.types'
 
 export const MIN_DAMAGE = 1
@@ -18,7 +18,10 @@ export const classicDamage: DamageRule = (attacker, defender) => ({
 
 /** Modo Arena — poder do round e vantagem elemental sobre o dano clássico. */
 export const arenaDamage: DamageRule = (attacker, defender, context) => {
-  const power = powerForRound(attacker.element, levelOf(attacker), context.turnIndex)
+  const available = unlockedPowers(attacker.element, levelOf(attacker))
+  /* A escolha do jogador só vale para um poder que ele de fato destravou. */
+  const chosen = available.find((entry) => entry.id === context.chosenPowerId)
+  const power = chosen ?? powerForRound(attacker.element, levelOf(attacker), context.turnIndex)
   const effectiveness = advantage(attacker.element, defender.element)
   const raw = baseDamage(attacker, defender) * power.multiplier * effectiveness
 

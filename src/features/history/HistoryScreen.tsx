@@ -1,4 +1,5 @@
 import { useBattlesStore } from '@/store/battles.store'
+import { BATTLE_MODE_LABEL } from '@/store/settings.store'
 import { PixelPanel } from '@/components/ui/PixelPanel'
 import { Button } from '@/components/ui/Button'
 
@@ -38,7 +39,7 @@ export const HistoryScreen = () => {
                 <b className="text-dim">{entry.loserName}</b>
               </span>
               <span className="text-dim text-[10px] tracking-wider tabular-nums uppercase">
-                {entry.rounds} rounds · modo {entry.mode === 'classic' ? 'clássico' : 'arena'} ·{' '}
+                {entry.rounds} rounds · modo {(BATTLE_MODE_LABEL[entry.mode] ?? entry.mode).toLowerCase()} ·{' '}
                 {formatDate(entry.foughtAt)}
               </span>
             </PixelPanel>

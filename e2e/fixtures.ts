@@ -45,8 +45,11 @@ export const pickFighters = async (page: Page, challenger: string, opponent: str
   await opponentChips.nth(1).click()
 }
 
-export const setMode = async (page: Page, mode: 'Clássico' | 'Arena') => {
-  const toggle = page.getByRole('button', { name: /^Modo:/ })
-  if (!(await toggle.textContent())?.includes(mode)) await toggle.click()
-  await page.getByRole('button', { name: `Modo: ${mode}` }).waitFor()
+export type BattleModeLabel = 'Clássico' | 'Arena' | 'Duelo por turno'
+
+/** O seletor de modo mostra os três de uma vez; basta clicar no desejado. */
+export const setMode = async (page: Page, mode: BattleModeLabel) => {
+  const option = page.getByRole('button', { name: mode, exact: true })
+  await option.click()
+  await option.and(page.locator('[aria-pressed="true"]')).waitFor()
 }

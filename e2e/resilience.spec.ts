@@ -86,5 +86,8 @@ test('preferências corrompidas não impedem o app de abrir', async ({ page }) =
 
   await expect(page.getByRole('tab', { name: /Roster/ })).toBeVisible()
   await page.getByRole('tab', { name: /Seleção/ }).click()
-  await expect(page.getByRole('button', { name: 'Modo: Clássico' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Clássico', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
 })

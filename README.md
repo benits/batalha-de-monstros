@@ -61,8 +61,24 @@ simulateBattle(a, b, 'classic') // fórmula do enunciado — default
 simulateBattle(a, b, 'arena') // + poder do round + vantagem elemental
 ```
 
-Os dois modos usam o mesmo motor e devolvem a mesma estrutura. Só a função de dano muda. O toggle
+Os dois modos usam o mesmo motor e devolvem a mesma estrutura. Só a função de dano muda. O seletor
 fica visível na tela de seleção, junto com a fórmula em uso.
+
+### Um resolvedor de round, dois drivers
+
+`advanceRound(a, b, estado, poderEscolhido?)` resolve **um** round e devolve um estado novo. Em
+cima dele existem dois modos de jogo, sem uma segunda implementação da regra para divergir:
+
+- **Automático** (Clássico e Arena) — `simulateBattle` é um fold de `advanceRound` até alguém cair.
+  Devolve o array completo antes de qualquer animação, como o enunciado exige.
+- **Duelo por turno** — a UI chama o mesmo `advanceRound` a cada clique, passando o poder que o
+  jogador escolheu; a CPU responde com o rodízio determinístico.
+
+O poder escolhido pelo jogador só vale se pertencer ao elemento do atacante e se o nível dele já o
+tiver destravado. A escolha na interface nunca vira privilégio sobre a regra.
+
+**O Duelo é o único modo que não pré-calcula a batalha**, e por isso está fora do que o enunciado
+pede — fica marcado como tal na própria tela.
 
 ### Camadas
 
@@ -114,6 +130,14 @@ próprio app.
 O roster inicial vem metade com sprite CC0 e metade em branco, de propósito, para as duas camadas
 ficarem visíveis na primeira tela.
 
+**Torneio.** Chave de eliminação simples com 4 ou 8 monstros, semeada pelos mais fortes do roster.
+Cada confronto chama o mesmo `simulateBattle` do duelo 1×1 — o torneio só encadeia resultados e
+promove o vencedor para `(rodada + 1, slot / 2)`. Dá para jogar confronto a confronto ou simular a
+chave inteira, e todo resultado entra no histórico.
+
+**Duelo por turno.** Modo em que você escolhe o golpe do seu monstro a cada rodada e a CPU responde.
+Detalhado acima, em "Um resolvedor de round, dois drivers".
+
 **Histórico, CRUD e som.** As últimas 20 batalhas ficam salvas. Monstros podem ser editados e
 excluídos. Os efeitos sonoros são sintetizados em WebAudio, sem nenhum arquivo de áudio no
 repositório, e têm botão de mudo.
@@ -141,7 +165,8 @@ vence. Um exemplo escrito à mão nunca encontraria o par com defesa 99 e ataque
 
 **End-to-end — o usuário consegue fazer o que precisa.** Cadastro, edição e exclusão sobrevivendo
 ao refresh; a batalha animando e o vencedor do banner batendo com o último round do log; o
-histórico registrando; `localStorage` corrompido não derrubando a tela; e acessibilidade auditada
+histórico registrando; o torneio resolvendo a chave e promovendo o vencedor; o duelo por turno
+aceitando o golpe escolhido; `localStorage` corrompido não derrubando a tela; e acessibilidade auditada
 com `axe-core` em cada tela.
 
 O arquivo `e2e/spec-compliance.spec.ts` merece destaque: ele existe para provar, pela interface, que

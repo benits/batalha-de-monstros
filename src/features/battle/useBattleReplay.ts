@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Monster } from '@/domain/monster/monster.types'
 import { simulateBattle } from '@/domain/battle/battle.engine'
 import type { BattleResult, Round } from '@/domain/battle/battle.types'
-import { useSettingsStore } from '@/store/settings.store'
+import { damageModeOf, useSettingsStore } from '@/store/settings.store'
 import { useBattlesStore } from '@/store/battles.store'
 import { useSfx } from '@/lib/audio/useSfx'
 
@@ -15,7 +15,8 @@ export type ReplayStatus = 'idle' | 'playing' | 'finished'
  * daqui pra frente é só reprodução do array de rounds — nada é recalculado.
  */
 export const useBattleReplay = (monsterA: Monster, monsterB: Monster) => {
-  const mode = useSettingsStore((state) => state.mode)
+  const battleMode = useSettingsStore((state) => state.mode)
+  const mode = damageModeOf(battleMode)
   const speed = useSettingsStore((state) => state.speed)
   const recordBattle = useBattlesStore((state) => state.recordBattle)
   const play = useSfx()
@@ -51,13 +52,13 @@ export const useBattleReplay = (monsterA: Monster, monsterB: Monster) => {
       const winner = battle.winnerId === monsterA.id ? monsterA : monsterB
       const loser = battle.winnerId === monsterA.id ? monsterB : monsterA
       recordBattle({
-        mode: battle.mode,
+        mode: battleMode,
         winnerName: winner.name,
         loserName: loser.name,
         rounds: battle.rounds.length,
       })
     },
-    [monsterA, monsterB, play, recordBattle],
+    [monsterA, monsterB, play, recordBattle, battleMode],
   )
 
   const start = useCallback(() => {

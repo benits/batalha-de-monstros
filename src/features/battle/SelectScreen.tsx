@@ -2,7 +2,12 @@ import type { Monster } from '@/domain/monster/monster.types'
 import { resolveFirstAttacker } from '@/domain/battle/turn-order'
 import { advantage } from '@/domain/powers/elements'
 import { levelOf } from '@/domain/monster/monster.rules'
-import { useSettingsStore } from '@/store/settings.store'
+import {
+  BATTLE_MODES,
+  BATTLE_MODE_HINT,
+  BATTLE_MODE_LABEL,
+  useSettingsStore,
+} from '@/store/settings.store'
 import { useSfx } from '@/lib/audio/useSfx'
 import { PixelPanel } from '@/components/ui/PixelPanel'
 import { Button } from '@/components/ui/Button'
@@ -142,25 +147,42 @@ export const SelectScreen = ({
         </p>
       )}
 
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-        <Button
-          variant="ghost"
-          onClick={() => {
-            setMode(mode === 'classic' ? 'arena' : 'classic')
-            play('select')
-          }}
-          title="Clássico usa a fórmula exata do enunciado. Arena adiciona poderes e vantagem elemental."
+      {/* Os três modos ficam visíveis: um botão que cicla esconde que o duelo existe. */}
+      <fieldset className="mx-auto mt-6 flex max-w-[560px] flex-col items-center gap-2 border-0 p-0">
+        <legend className="text-dim mb-1 text-[10px] tracking-[0.2em] uppercase">
+          Modo de batalha
+        </legend>
+        <div className="flex flex-wrap justify-center gap-1.5">
+          {BATTLE_MODES.map((option) => (
+            <button
+              key={option}
+              type="button"
+              aria-pressed={mode === option}
+              title={BATTLE_MODE_HINT[option]}
+              onClick={() => {
+                setMode(option)
+                play('select')
+              }}
+              className={cn(
+                'pixel-border-lo cursor-pointer px-3 py-2 text-[10px] tracking-wider uppercase',
+                mode === option ? 'bg-amber text-void' : 'bg-panel-hi text-dim hover:text-paper',
+              )}
+            >
+              {BATTLE_MODE_LABEL[option]}
+            </button>
+          ))}
+        </div>
+        <p
+          data-testid="mode-hint"
+          className="text-dim mt-1 max-w-[52ch] text-center text-[11px] leading-relaxed"
         >
-          Modo: {mode === 'classic' ? 'Clássico' : 'Arena'}
-        </Button>
+          {BATTLE_MODE_HINT[mode]}
+        </p>
+      </fieldset>
+
+      <div className="mt-5 flex justify-center">
         <Button onClick={onFight}>Para a arena →</Button>
       </div>
-
-      <p className="text-dim mx-auto mt-3 max-w-[52ch] text-center text-[11px] leading-relaxed">
-        {mode === 'classic'
-          ? 'Clássico: dano = ataque − defesa, mínimo 1. A fórmula do enunciado, sem nenhuma adição.'
-          : 'Arena: o dano clássico passa pelo poder do round e pela vantagem elemental.'}
-      </p>
     </section>
   )
 }

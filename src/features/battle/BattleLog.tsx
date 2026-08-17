@@ -1,29 +1,31 @@
 import { useEffect, useRef } from 'react'
 import type { Monster } from '@/domain/monster/monster.types'
-import type { BattleResult } from '@/domain/battle/battle.types'
+import type { Round } from '@/domain/battle/battle.types'
 import { POWERS } from '@/domain/powers/powers.catalog'
 import { PixelPanel } from '@/components/ui/PixelPanel'
 import { cn } from '@/lib/cn'
 
 type BattleLogProps = {
-  result: BattleResult | null
+  rounds: Round[]
+  /** Quantos rounds já foram revelados; o último revelado fica destacado. */
   cursor: number
   monsters: Record<string, Monster>
+  emptyMessage?: string
 }
 
-export const BattleLog = ({ result, cursor, monsters }: BattleLogProps) => {
+export const BattleLog = ({ rounds, cursor, monsters, emptyMessage }: BattleLogProps) => {
   const activeRef = useRef<HTMLLIElement>(null)
 
   useEffect(() => {
     activeRef.current?.scrollIntoView({ block: 'nearest' })
   }, [cursor])
 
-  if (!result) {
+  if (cursor === 0) {
     return (
       <PixelPanel className="grid h-[352px] place-items-center p-3">
         <p className="text-dim max-w-[26ch] text-center text-[12px] leading-relaxed">
-          Todos os rounds são calculados de uma vez ao iniciar. O que roda aqui é o replay do
-          resultado.
+          {emptyMessage ??
+            'Todos os rounds são calculados de uma vez ao iniciar. O que roda aqui é o replay do resultado.'}
         </p>
       </PixelPanel>
     )
@@ -31,7 +33,7 @@ export const BattleLog = ({ result, cursor, monsters }: BattleLogProps) => {
 
   return (
     <PixelPanel as="ol" className="flex h-[352px] flex-col gap-1.5 overflow-y-auto p-3">
-      {result.rounds.slice(0, cursor).map((round) => {
+      {rounds.slice(0, cursor).map((round) => {
         const isActive = round.round === cursor
         const power = round.powerId ? POWERS.find((entry) => entry.id === round.powerId) : undefined
 
