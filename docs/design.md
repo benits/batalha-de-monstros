@@ -92,13 +92,19 @@ Cinco elementos cabem em aritmética modular. Dezoito exigiriam uma matriz 18×1
 
 ```ts
 const levelOf = (m: Monster) =>
-  clamp(1, 10, Math.floor((m.attack + m.defense + m.speed + m.hp) / 40))
+  clamp(1, 10, Math.floor((m.attack + m.defense + m.speed + m.hp) / 24))
 ```
 
 O formulário mantém exatamente os seis campos do enunciado, mais `element`. Um monstro com stats
 altos destrava mais poderes por consequência, sem campo extra e sem número mágico solto na UI.
 
 `element` é o único campo além do enunciado. Justificado no README como extensão explícita.
+
+> **Ajuste durante a implementação.** O divisor começou em 40. Com esse valor, os seis monstros
+> iniciais caíam todos no nível 4 e nenhum chegava a destravar o segundo poder — a mecânica existia
+> no código e era invisível na tela. Baixar para 24 e rebalancear os seeds fez o roster cobrir os
+> níveis 4 a 9. `seed.test.ts` agora trava isso: exige que o roster inicial contenha monstros com
+> 1, 2 e 3 poderes destravados, para a regressão não voltar em silêncio.
 
 ### D6 — Poderes orientados a dados
 
@@ -159,30 +165,41 @@ src/
       monster.schema.ts         # zod
       monster.rules.ts          # levelOf, powerScore
     battle/
-      battle.types.ts           # Round, BattleResult
-      battle.engine.ts          # simulateBattle
+      battle.types.ts           # Round, BattleResult, BattleState, DamageRule
+      battle.state.ts           # createBattle, advanceRound, toResult
+      battle.engine.ts          # simulateBattle (fold de advanceRound)
       damage.rules.ts           # classicDamage | arenaDamage
       turn-order.ts             # resolveFirstAttacker
     powers/
       elements.ts               # CYCLE, advantage, metadados
       powers.catalog.ts         # 5 × 3
       powers.rules.ts           # unlockedPowers, powerForRound
+    tournament/
+      tournament.ts             # bracket de eliminação simples
   store/
     monsters.store.ts
     battles.store.ts
     settings.store.ts
+    hydrate.ts                  # valida o localStorage contra o schema
+    seed.ts
   features/
-    roster/                     # MonsterCard, MonsterForm, MonsterGrid, SpriteGallery
-    battle/                     # Arena, HealthBar, BattleLog, PowerEffect, useBattleReplay
-    history/                    # BattleHistory
-  components/ui/                # PixelPanel, StatBar, Button, Select, Modal, Sprite
+    roster/                     # RosterScreen, MonsterCard, MonsterForm, SpriteGallery
+    battle/                     # ArenaScreen, SelectScreen, DuelArena, HealthBar,
+                                # BattleLog, PowerEffect, useBattleReplay, useTurnBattle
+    tournament/                 # TournamentScreen
+    history/                    # HistoryScreen
+  components/ui/                # PixelPanel, StatBar, Button, Field, Modal, Sprite, Tabs
   lib/
     sprite/generateSprite.ts
-    audio/useSfx.ts
+    sprite/presets.ts
+    audio/sfx.ts, audio/useSfx.ts
     cn.ts
   app/
-    App.tsx, routes.tsx
+    App.tsx
 ```
+
+A navegação é por abas em estado local, não por rotas: são cinco telas sem URL própria, e um
+router seria peso sem benefício.
 
 Pontos de DRY que a estrutura protege:
 
@@ -197,10 +214,13 @@ Pontos de DRY que a estrutura protege:
 1. **Roster** — grid de cards com sprite, stats e badge de elemento; formulário de cadastro com
    preview ao vivo, galeria de presets e validação zod; editar e excluir por card.
 2. **Seleção** — dois slots, comparativo de stats lado a lado, indicação de quem ataca primeiro e
-   por quê, matchup elemental, toggle Clássico/Arena.
+   por quê, matchup elemental, seletor dos três modos de batalha.
 3. **Arena** — sprites frente a frente, barras de HP que drenam, efeito visual do poder, número de
-   dano flutuante, log sincronizado, controles de velocidade e pular, banner de vitória.
-4. **Histórico** — batalhas anteriores com vencedor, número de rounds e modo usado.
+   dano flutuante, log sincronizado, controles de velocidade e pular, banner de vitória. É também
+   onde o Duelo por turno roda, com os botões de golpe no lugar dos controles de replay.
+4. **Torneio** — chave de eliminação simples com 4 ou 8 monstros, confronto a confronto ou
+   simulação completa da chave.
+5. **Histórico** — batalhas anteriores com vencedor, número de rounds e modo usado.
 
 ## Direção visual
 
@@ -210,20 +230,21 @@ texto `#EFEAFF`, acento âmbar `#FFC53D`. Stats com cor semântica: ataque `#FF4
 scanlines sutis, tipografia monoespaçada em caixa alta com tracking. Tema único escuro, assumido
 como decisão — é uma tela de arcade.
 
-Mockup validado: https://claude.ai/code/artifact/3b62d63c-3a94-4607-999b-9f0e8ea64830
-
 ## Testes
 
-Vitest cobrindo apenas `src/domain/`:
+Três camadas, porque cada uma responde a uma pergunta diferente. Detalhamento no README.
 
-- ordem de ataque por velocidade, e desempate por ataque.
-- dano mínimo 1 quando `attack <= defense`.
-- HP nunca fica negativo.
-- vencedor é quem zerou o HP do inimigo.
-- batalha sempre termina (sem loop infinito).
-- ciclo de elementos: vantagem, desvantagem e neutro.
-- destravamento de poderes por nível.
-- determinismo: mesma entrada, mesmo `BattleResult`.
+**Unidade (Vitest)** — a regra está certa nos casos previstos: ordem de ataque e desempate, dano
+mínimo 1, HP nunca negativo, vencedor é quem zerou o HP do inimigo, determinismo, ciclo de
+elementos, destravamento de poderes, validação do cadastro, resiliência do estado salvo e
+promoção correta no bracket do torneio.
+
+**Propriedade (fast-check)** — a regra está certa nos casos não previstos: cada invariante roda
+contra 2.000 pares gerados dentro dos limites que o formulário aceita.
+
+**End-to-end (Playwright + axe-core)** — o usuário consegue fazer o que precisa, e cada tela passa
+por auditoria de acessibilidade. `e2e/spec-compliance.spec.ts` prova pela interface que a
+aplicação cumpre o enunciado.
 
 ## Entrega
 
@@ -232,6 +253,17 @@ Vitest cobrindo apenas `src/domain/`:
 - `git init` com commits semânticos por etapa.
 - Deploy na Vercel, link no README.
 
+## Adições depois do desenho inicial
+
+Estas duas nasceram fora do plano original, já com o app rodando:
+
+- **Torneio** — chave de eliminação simples. Entrou porque `simulateBattle` já era pura: o torneio
+  não reimplementa nada, só encadeia chamadas e promove o vencedor para `(rodada + 1, slot / 2)`.
+- **Duelo por turno** — para o jogador escolher o golpe a cada rodada. Exigiu extrair `advanceRound`
+  de dentro do loop de `simulateBattle`, o que virou a melhor decisão de arquitetura do projeto:
+  passou a existir **um** resolvedor de round com dois drivers, em vez de duas implementações da
+  mesma regra podendo divergir.
+
 ## Fora de escopo
 
-Backend, autenticação, multiplayer, torneio, evolução de monstro, i18n, tema claro.
+Backend, autenticação, multiplayer em rede, evolução de monstro, i18n, tema claro.
