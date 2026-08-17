@@ -101,7 +101,7 @@ altos destrava mais poderes por consequência, sem campo extra e sem número má
 `element` é o único campo além do enunciado. Justificado no README como extensão explícita.
 
 > **Ajuste durante a implementação.** O divisor começou em 40. Com esse valor, os seis monstros
-> iniciais caíam todos no nível 4 e nenhum chegava a destravar o segundo poder — a mecânica existia
+> iniciais caíam todos no nível 4 e nenhum chegava a destravar o segundo poder. A mecânica existia
 > no código e era invisível na tela. Baixar para 24 e rebalancear os seeds fez o roster cobrir os
 > níveis 4 a 9. `seed.test.ts` agora trava isso: exige que o roster inicial contenha monstros com
 > 1, 2 e 3 poderes destravados, para a regressão não voltar em silêncio.
@@ -127,7 +127,7 @@ já destravados usando o índice do round. Rodar a mesma batalha duas vezes dá 
 que é o que a exigência de "calcular tudo de uma vez" pressupõe.
 
 As animações são renderizadas por um único componente `<PowerEffect kind={...} />` orientado ao
-campo `animation` — não por quinze componentes.
+campo `animation`, não por quinze componentes.
 
 ### D7 — Metadados de elemento em um lugar só
 
@@ -228,23 +228,23 @@ Arcade CRT. Fundo `#0B0A14` (quase-preto com viés violeta), painéis `#171528`,
 texto `#EFEAFF`, acento âmbar `#FFC53D`. Stats com cor semântica: ataque `#FF4D6D`, defesa
 `#45E0FF`, velocidade `#FFC53D`, HP `#7CF03D`. Bordas pixeladas via `box-shadow` de quatro lados,
 scanlines sutis, tipografia monoespaçada em caixa alta com tracking. Tema único escuro, assumido
-como decisão — é uma tela de arcade.
+como decisão: é uma tela de arcade.
 
 ## Testes
 
-Três camadas, porque cada uma responde a uma pergunta diferente. Detalhamento no README.
+Três camadas, porque cada uma pega um tipo de erro que as outras deixam passar. Detalhamento no
+README.
 
-**Unidade (Vitest)** — a regra está certa nos casos previstos: ordem de ataque e desempate, dano
-mínimo 1, HP nunca negativo, vencedor é quem zerou o HP do inimigo, determinismo, ciclo de
-elementos, destravamento de poderes, validação do cadastro, resiliência do estado salvo e
-promoção correta no bracket do torneio.
+Vitest cobre o domínio caso a caso: ordem de ataque e desempate, dano mínimo 1, HP nunca negativo,
+vencedor é quem zerou o HP do inimigo, determinismo, ciclo de elementos, destravamento de poderes,
+validação do cadastro, resiliência do estado salvo e promoção correta no bracket do torneio.
 
-**Propriedade (fast-check)** — a regra está certa nos casos não previstos: cada invariante roda
-contra 2.000 pares gerados dentro dos limites que o formulário aceita.
+Em cima disso, `fast-check` roda cada invariante contra 2.000 pares de monstros gerados dentro dos
+limites que o formulário aceita. É onde aparecem os casos que ninguém escreveria à mão.
 
-**End-to-end (Playwright + axe-core)** — o usuário consegue fazer o que precisa, e cada tela passa
-por auditoria de acessibilidade. `e2e/spec-compliance.spec.ts` prova pela interface que a
-aplicação cumpre o enunciado.
+O Playwright fecha pela interface, com `axe-core` auditando acessibilidade em cada tela. O arquivo
+`e2e/spec-compliance.spec.ts` existe especificamente para provar, pela UI, que a aplicação cumpre
+o enunciado.
 
 ## Entrega
 
@@ -257,12 +257,13 @@ aplicação cumpre o enunciado.
 
 Estas duas nasceram fora do plano original, já com o app rodando:
 
-- **Torneio** — chave de eliminação simples. Entrou porque `simulateBattle` já era pura: o torneio
-  não reimplementa nada, só encadeia chamadas e promove o vencedor para `(rodada + 1, slot / 2)`.
-- **Duelo por turno** — para o jogador escolher o golpe a cada rodada. Exigiu extrair `advanceRound`
-  de dentro do loop de `simulateBattle`, o que virou a melhor decisão de arquitetura do projeto:
-  passou a existir **um** resolvedor de round com dois drivers, em vez de duas implementações da
-  mesma regra podendo divergir.
+O **torneio** entrou porque `simulateBattle` já era pura: a chave não reimplementa nada, só encadeia
+chamadas e promove o vencedor para `(rodada + 1, slot / 2)`. Custou pouco justamente por causa de D1.
+
+O **duelo por turno** custou mais. Para o jogador escolher o golpe a cada rodada, foi preciso
+extrair `advanceRound` de dentro do loop de `simulateBattle`. O resultado acabou sendo melhor que o
+desenho original: passou a existir um resolvedor de round com dois drivers em cima, em vez de duas
+implementações da mesma regra livres para divergir com o tempo.
 
 ## Fora de escopo
 
