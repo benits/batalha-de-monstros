@@ -157,10 +157,11 @@ selecionada aplicava `hover:text-paper` por cima do fundo âmbar, dando contrast
 o mouse sobre a aba ativa fazia o texto sumir. O mesmo padrão estava nos chips de seleção de
 lutador. Corrigido em ambos.
 
-## CI
+Um único comando reproduz o que um CI rodaria:
 
-`.github/workflows/ci.yml` roda lint, checagem de tipos, build, testes de domínio e end-to-end a
-cada push e pull request, e guarda o relatório do Playwright como artefato.
+```bash
+npm run lint && npm run build && npm run test:all
+```
 
 ## Acessibilidade e preferências
 
