@@ -105,7 +105,12 @@ extra.
 **Sprites em três camadas.** A `image_url` que você informar tem prioridade. Se estiver vazia ou
 falhar ao carregar, um sprite pixel art é gerado a partir do nome e do elemento — a silhueta vem de
 um passeio aleatório com seed, então mesmo nome e mesmo elemento sempre geram o mesmo monstro. O
-formulário também oferece variações clicáveis. Nenhum asset externo, nenhuma chamada de rede.
+formulário oferece as duas origens lado a lado: sprites CC0 filtrados pelo elemento escolhido, e
+variações procedurais do nome. Nenhuma chamada de rede em runtime — os PNGs são servidos pelo
+próprio app.
+
+O roster inicial vem metade com sprite CC0 e metade em branco, de propósito, para as duas camadas
+ficarem visíveis na primeira tela.
 
 **Histórico, CRUD e som.** As últimas 20 batalhas ficam salvas. Monstros podem ser editados e
 excluídos. Os efeitos sonoros são sintetizados em WebAudio, sem nenhum arquivo de áudio no
@@ -131,3 +136,10 @@ visível, e `prefers-reduced-motion` desliga as animações.
 ## Stack
 
 React 19 · TypeScript · Vite · Tailwind CSS v4 · Zustand · zod · react-hook-form · Vitest
+
+## Créditos
+
+Os 15 sprites em `public/sprites/` vêm do tileset [Dungeon Crawl 32x32
+tiles](https://opengameart.org/content/dungeon-crawl-32x32-tiles), do Dungeon Crawl Stone Soup, sob
+**CC0 1.0** (domínio público). Foram apenas renomeados com o prefixo do elemento; nenhum pixel
+alterado. Detalhes e mapa de arquivos em [`public/sprites/CREDITS.md`](public/sprites/CREDITS.md).

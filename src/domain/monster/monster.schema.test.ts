@@ -37,8 +37,30 @@ describe('monsterDraftSchema', () => {
     expect(monsterDraftSchema.safeParse({ ...valid, imageUrl: '' }).success).toBe(true)
   })
 
-  it('rejeita image_url que não é URL', () => {
+  it('aceita url absoluta', () => {
+    const url = 'https://exemplo.com/monstro.png'
+    expect(monsterDraftSchema.safeParse({ ...valid, imageUrl: url }).success).toBe(true)
+  })
+
+  it('aceita caminho relativo dos sprites que acompanham o app', () => {
+    expect(monsterDraftSchema.safeParse({ ...valid, imageUrl: '/sprites/agua-kraken.png' }).success).toBe(
+      true,
+    )
+  })
+
+  it('aceita data uri, que é o que o sprite procedural produz', () => {
+    const dataUri = 'data:image/svg+xml,%3Csvg%3E%3C/svg%3E'
+    expect(monsterDraftSchema.safeParse({ ...valid, imageUrl: dataUri }).success).toBe(true)
+  })
+
+  it('rejeita texto que não é imagem nenhuma', () => {
     expect(monsterDraftSchema.safeParse({ ...valid, imageUrl: 'nao-e-url' }).success).toBe(false)
+  })
+
+  it('rejeita caminho relativo sem extensão de imagem', () => {
+    expect(monsterDraftSchema.safeParse({ ...valid, imageUrl: '/sprites/qualquer' }).success).toBe(
+      false,
+    )
   })
 
   it('rejeita elemento desconhecido', () => {

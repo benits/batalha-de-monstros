@@ -22,6 +22,13 @@ describe('SEED_MONSTERS', () => {
     for (const element of ELEMENT_CYCLE) expect(used.has(element)).toBe(true)
   })
 
+  it('mistura sprite CC0 e sprite procedural, para as duas camadas ficarem visíveis', () => {
+    const comUrl = SEED_MONSTERS.filter((monster) => monster.imageUrl !== '')
+    const semUrl = SEED_MONSTERS.filter((monster) => monster.imageUrl === '')
+    expect(comUrl.length).toBeGreaterThan(0)
+    expect(semUrl.length).toBeGreaterThan(0)
+  })
+
   it('cobre os três tiers de poder, para o modo arena não ficar sempre no tier 1', () => {
     const unlockCounts = SEED_MONSTERS.map(
       (monster) => unlockedPowers(monster.element, levelOf(monster)).length,
