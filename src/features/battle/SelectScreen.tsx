@@ -37,8 +37,11 @@ const Slot = ({ title, monster, monsters, onPick }: SlotProps) => (
           aria-pressed={candidate.id === monster.id}
           onClick={() => onPick(candidate.id)}
           className={cn(
-            'bg-panel-hi text-dim pixel-border-lo hover:text-paper cursor-pointer px-2.5 py-1.5 text-[10px] tracking-wider uppercase',
-            candidate.id === monster.id && 'bg-cyan text-void',
+            'pixel-border-lo cursor-pointer px-2.5 py-1.5 text-[10px] tracking-wider uppercase',
+            /* Mesmo cuidado das abas: o hover não sobrescreve o estado selecionado. */
+            candidate.id === monster.id
+              ? 'bg-cyan text-void'
+              : 'bg-panel-hi text-dim hover:text-paper',
           )}
         >
           {candidate.name.split(' ')[0]}
@@ -123,7 +126,12 @@ export const SelectScreen = ({
         ))}
       </div>
 
-      <p className="text-dim mt-4 text-center text-[11px] tracking-wider uppercase">
+      <p
+        data-testid="first-attacker"
+        data-first={order.first.name}
+        data-reason={order.reason}
+        className="text-dim mt-4 text-center text-[11px] tracking-wider uppercase"
+      >
         <b className="text-amber">{order.first.name}</b> ataca primeiro —{' '}
         {order.reason === 'speed' ? 'maior velocidade' : 'maior ataque no desempate'}
       </p>

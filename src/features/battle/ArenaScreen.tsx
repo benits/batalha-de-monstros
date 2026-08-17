@@ -28,6 +28,14 @@ export const ArenaScreen = ({ challenger, opponent }: ArenaScreenProps) => {
   const winner = finished ? monsters[result.winnerId] : null
   const loser = finished ? monsters[result.loserId] : null
 
+  const narration = result && winner
+    ? `Fim da batalha. ${winner.name} venceu em ${result.rounds.length} rounds.`
+    : currentRound
+      ? `Round ${currentRound.round}. ${monsters[currentRound.attackerId]?.name} atacou ${
+          monsters[currentRound.defenderId]?.name
+        } causando ${currentRound.damage} de dano.`
+      : ''
+
   return (
     <section className="grid gap-6 lg:grid-cols-[1fr_300px]">
       <div>
@@ -61,7 +69,9 @@ export const ArenaScreen = ({ challenger, opponent }: ArenaScreenProps) => {
 
           {winner && loser && result && (
             <div
-              role="status"
+              data-testid="winner-banner"
+              data-winner={winner.name}
+              data-rounds={result.rounds.length}
               className="absolute top-1/2 left-1/2 z-20 w-[min(90%,380px)] -translate-x-1/2 -translate-y-1/2 bg-[rgb(11_10_20/0.94)] p-4 text-center shadow-[0_-3px_0_var(--color-amber),0_3px_0_var(--color-amber)]"
             >
               <p className="text-amber text-lg font-bold tracking-[0.16em] uppercase">
@@ -100,6 +110,12 @@ export const ArenaScreen = ({ challenger, opponent }: ArenaScreenProps) => {
         <p className="text-dim mb-2 text-[10px] tracking-[0.2em] uppercase">Log da batalha</p>
         <BattleLog result={result} cursor={cursor} monsters={monsters} />
       </div>
+
+      {/* Narração da batalha para leitor de tela: um round por anúncio,
+          em vez de reler o log inteiro a cada atualização. */}
+      <p className="sr-only" role="status" aria-live="polite" data-testid="battle-narration">
+        {narration}
+      </p>
     </section>
   )
 }

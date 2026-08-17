@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Monster, MonsterDraft } from '@/domain/monster/monster.types'
 import { SEED_MONSTERS } from './seed'
+import { safeMonsters } from './hydrate'
 
 type MonstersState = {
   monsters: Monster[]
@@ -36,6 +37,11 @@ export const useMonstersStore = create<MonstersState>()(
       removeMonster: (id) =>
         set((state) => ({ monsters: state.monsters.filter((monster) => monster.id !== id) })),
     }),
-    { name: 'revi:monsters' },
+    {
+      name: 'revi:monsters',
+      version: 1,
+      /** Estado salvo passa pelo schema antes de virar estado da aplicação. */
+      merge: (persisted, current) => ({ ...current, monsters: safeMonsters(persisted) }),
+    },
   ),
 )

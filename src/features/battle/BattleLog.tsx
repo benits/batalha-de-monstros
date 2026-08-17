@@ -38,6 +38,10 @@ export const BattleLog = ({ result, cursor, monsters }: BattleLogProps) => {
         return (
           <li
             key={round.round}
+            data-testid="log-line"
+            data-round={round.round}
+            data-damage={round.damage}
+            data-attacker={monsters[round.attackerId]?.name}
             ref={isActive ? activeRef : undefined}
             className={cn(
               'bg-void text-dim border-edge border-l-[3px] px-2 py-1.5 text-[11px] leading-relaxed',

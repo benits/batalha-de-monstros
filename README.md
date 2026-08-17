@@ -118,24 +118,76 @@ repositório, e têm botão de mudo.
 
 ## Testes
 
-O enunciado dispensa testes automatizados. Ainda assim o domínio é testado — é onde mora a regra
-que está sendo avaliada.
+O enunciado dispensa testes automatizados. Ainda assim há três camadas, porque cada uma responde a
+uma pergunta diferente.
 
 ```bash
-npm test
+npm test          # domínio + propriedades (Vitest)
+npm run test:e2e  # fluxo real no navegador (Playwright)
+npm run test:all  # os dois
 ```
 
-Cobre ordem de ataque e desempate, dano mínimo 1, HP nunca negativo, término garantido da batalha,
-determinismo do resultado, ciclo de elementos, destravamento de poderes e validação do cadastro.
+**Unidade — a regra está certa nos casos que eu previ.** Ordem de ataque e desempate, dano mínimo
+1, HP nunca negativo, determinismo, ciclo de elementos, destravamento de poderes, validação do
+cadastro e resiliência do estado salvo.
+
+**Propriedade — a regra está certa nos casos que eu não previ.** Com `fast-check`, cada invariante
+roda contra 2.000 pares de monstros gerados dentro dos limites que o formulário aceita: a batalha
+sempre termina, o dano é sempre inteiro e ≥ 1, o HP nunca sobe nem fica negativo, exatamente um
+lado chega a zero, os atacantes sempre alternam, e trocar a ordem dos argumentos não muda quem
+vence. Um exemplo escrito à mão nunca encontraria o par com defesa 99 e ataque 1.
+
+**End-to-end — o usuário consegue fazer o que precisa.** Cadastro, edição e exclusão sobrevivendo
+ao refresh; a batalha animando e o vencedor do banner batendo com o último round do log; o
+histórico registrando; `localStorage` corrompido não derrubando a tela; e acessibilidade auditada
+com `axe-core` em cada tela.
+
+O arquivo `e2e/spec-compliance.spec.ts` merece destaque: ele existe para provar, pela interface, que
+a aplicação cumpre o enunciado. Cria dois monstros com atributos conhecidos e verifica round a
+round que o dano é exatamente `attack - defense`, que o piso de 1 vale, que o desempate por ataque
+funciona e que o total de rounds já está definido no primeiro quadro da animação. Se alguém mudar a
+regra, esse arquivo quebra mesmo que o motor continue verde.
+
+### O que os testes já pegaram
+
+O `axe-core` encontrou um defeito visual real que passou despercebido na revisão manual: a aba
+selecionada aplicava `hover:text-paper` por cima do fundo âmbar, dando contraste de 1.34:1. Passar
+o mouse sobre a aba ativa fazia o texto sumir. O mesmo padrão estava nos chips de seleção de
+lutador. Corrigido em ambos.
+
+## CI
+
+`.github/workflows/ci.yml` roda lint, checagem de tipos, build, testes de domínio e end-to-end a
+cada push e pull request, e guarda o relatório do Playwright como artefato.
 
 ## Acessibilidade e preferências
 
 Barras de HP são `progressbar` com valores ARIA, as abas usam `role="tab"`, o foco tem contorno
 visível, e `prefers-reduced-motion` desliga as animações.
 
+## Como isso evoluiria para multiplayer
+
+O enunciado dispensa backend, então não há nenhum aqui. Mas vale registrar por que a arquitetura
+escolhida torna multiplayer barato, caso fosse o próximo passo.
+
+`simulateBattle` é pura e determinística: mesma entrada, mesmo array de rounds, em qualquer
+máquina. Isso permite **simulação em lockstep** — os dois clientes trocam apenas a entrada (quais
+monstros, qual modo, qual seed se houver aleatoriedade futura) e cada um deriva localmente o mesmo
+resultado. Não é preciso sincronizar HP, round atual ou animação; não há estado autoritativo para
+divergir, e a banda usada é de dezenas de bytes por partida em vez de um evento por round.
+
+O servidor viraria um matchmaker fino: parear jogadores, repassar as seleções, e — se houvesse
+aposta ou ranking — reexecutar a mesma função pura para validar o resultado reportado. A função já
+roda em Node sem alteração, porque não importa React nem toca em `window`.
+
+O que mudaria no código: extrair `domain/` para um pacote compartilhado e adicionar uma camada de
+transporte. Nenhuma reescrita do motor, do replay ou das telas. É esse o retorno de ter mantido a
+regra de negócio livre de framework.
+
 ## Stack
 
-React 19 · TypeScript · Vite · Tailwind CSS v4 · Zustand · zod · react-hook-form · Vitest
+React 19 · TypeScript · Vite · Tailwind CSS v4 · Zustand · zod · react-hook-form · Vitest ·
+Playwright · fast-check · axe-core
 
 ## Créditos
 

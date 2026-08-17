@@ -6,11 +6,11 @@ import { SelectScreen } from '@/features/battle/SelectScreen'
 import { ArenaScreen } from '@/features/battle/ArenaScreen'
 import { HistoryScreen } from '@/features/history/HistoryScreen'
 import { Button } from '@/components/ui/Button'
-import { cn } from '@/lib/cn'
+import { Tabs, type Tab } from '@/components/ui/Tabs'
 
 type Screen = 'roster' | 'select' | 'arena' | 'history'
 
-const TABS: { id: Screen; label: string }[] = [
+const TABS: Tab<Screen>[] = [
   { id: 'roster', label: '01 · Roster' },
   { id: 'select', label: '02 · Seleção' },
   { id: 'arena', label: '03 · Arena' },
@@ -56,23 +56,8 @@ export const App = () => {
       </header>
 
       <div className="bg-gradient-to-b from-[#1B1830] to-[#100E1E] p-6 shadow-[0_-6px_0_var(--color-edge),0_6px_0_var(--color-edge),-6px_0_0_var(--color-edge),6px_0_0_var(--color-edge)]">
-        <div className="mb-4 flex flex-wrap items-center gap-1" role="tablist" aria-label="Telas">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={screen === tab.id}
-              onClick={() => setScreen(tab.id)}
-              className={cn(
-                'bg-panel-hi text-dim pixel-border-lo cursor-pointer px-4 py-2.5 text-[11px] tracking-[0.18em] uppercase',
-                'hover:text-paper transition-transform hover:-translate-y-0.5',
-                screen === tab.id && 'bg-amber text-void',
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="mb-4 flex flex-wrap items-center gap-1">
+          <Tabs tabs={TABS} active={screen} onChange={setScreen} label="Telas do app" />
           <Button
             variant="ghost"
             className="ml-auto"
@@ -84,7 +69,12 @@ export const App = () => {
           </Button>
         </div>
 
-        <div className="scanlines relative min-h-[520px] overflow-hidden bg-[#0D0B18] p-6 shadow-[inset_0_0_0_3px_#060510,inset_0_0_60px_rgba(164,92,255,0.13)]">
+        <div
+          role="tabpanel"
+          id={`panel-${screen}`}
+          aria-labelledby={`tab-${screen}`}
+          className="scanlines relative min-h-[520px] overflow-hidden bg-[#0D0B18] p-6 shadow-[inset_0_0_0_3px_#060510,inset_0_0_60px_rgba(164,92,255,0.13)]"
+        >
           {screen === 'roster' && <RosterScreen />}
 
           {screen === 'select' &&

@@ -34,3 +34,8 @@ export const monsterDraftSchema = z.object({
 })
 
 export type MonsterDraftInput = z.infer<typeof monsterDraftSchema>
+
+/** Monstro já persistido — o mesmo do formulário, mais o id. */
+export const monsterSchema = monsterDraftSchema.extend({
+  id: z.string().min(1),
+})
